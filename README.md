@@ -114,23 +114,25 @@ Toutes les captures sont dans `screens/` :
 
 ## Questions théoriques
 
-### Q1. Différence entre Terraform et Ansible — complémentarité dans ce projet
+### Q1.  Quelle est la différence entre Terraform et Ansible ? En quoi sont-ils complémentaires dans ce
+projet ?
 
-**Terraform** est un outil de *provisionnement* : il décrit et crée l'infrastructure (ici le conteneur Docker) de manière déclarative, en s'appuyant sur un state. **Ansible** est un outil de *configuration* : il agit sur des cibles existantes pour les amener dans un état donné (ici personnaliser le contenu Nginx). Dans ce projet, Terraform crée le conteneur, puis Ansible le configure — chacun fait ce qu'il fait le mieux.
+**Terraform** est un outil de *provisionnement* : il décrit et crée l'infrastructure de manière déclarative, en s'appuyant sur un state. **Ansible** est un outil de *configuration* : il agit sur des cibles existantes pour les amener dans un état donné.
 
-### Q2. Rôle du state file Terraform et risques
+### Q2. À quoi sert le state file Terraform ? Quels risques pose sa mauvaise gestion en équipe ?
 
-Le state (`terraform.tfstate`) est la mémoire de Terraform : il associe les ressources déclarées dans le code aux ressources réellement créées sur l'infrastructure. Sans lui, Terraform serait incapable de savoir ce qui existe déjà, ce qu'il doit modifier ou détruire. En équipe, une mauvaise gestion (state local non partagé, écrasement concurrent, fuite de secrets stockés dans le state) provoque des dérives entre l'infra réelle et le code, voire la destruction accidentelle de ressources. Solution standard : un *remote backend* (S3, Terraform Cloud) avec verrouillage.
+Le state (`terraform.tfstate`) est la mémoire de Terraform : il associe les ressources déclarées dans le code aux ressources réellement créées sur l'infrastructure. Sans lui, Terraform serait incapable de savoir ce qui existe déjà, ce qu'il doit modifier ou détruire. En équipe, une mauvaise gestion provoque des dérives entre l'infra réelle et le code, voire la destruction accidentelle de ressources.
 
-### Q3. Idempotence — exemple dans ce projet
+### Q3. Qu'est-ce que l'idempotence ? Donnez un exemple concret tiré de ce projet.
 
-L'idempotence est la propriété qu'une opération produise le même résultat qu'elle soit exécutée une ou plusieurs fois. Exemple concret : relancer `bash scripts/deploy.sh` sur un environnement déjà déployé ne crée pas un deuxième conteneur — Terraform constate que l'infra correspond déjà au code et ne fait rien, et Ansible réécrit `index.html` à l'identique (hors horodatage) sans casser l'existant.
+L'idempotence est la propriété qu'une opération produise le même résultat qu'elle soit exécutée une ou plusieurs fois. Exemple concret : relancer `bash scripts/deploy.sh` sur un environnement déjà déployé ne crée pas un deuxième conteneur — Terraform constate que l'infra correspond déjà au code et ne fait rien, et Ansible réécrit `index.html` à l'identique sans casser l'existant.
 
-### Q4. `terraform apply` vs `terraform apply -replace`
+### Q4. Quelle est la différence entre terraform apply et terraform apply -replace ? Dans quel cas
+utiliseriez-vous le second ?
 
-`terraform apply` applique uniquement les changements nécessaires pour faire converger l'infra vers le code. `terraform apply -replace=<ressource>` force la destruction puis la recréation d'une ressource spécifique, même si rien n'a changé dans le code. On l'utilise quand une ressource est dans un état dégradé invisible pour Terraform (conteneur corrompu, certificat à régénérer, drift manuel sur l'instance) — c'est l'équivalent moderne et ciblé de `terraform taint`.
+`terraform apply` applique uniquement les changements nécessaires pour faire converger l'infra vers le code. `terraform apply -replace=<ressource>` force la destruction puis la recréation d'une ressource spécifique, même si rien n'a changé dans le code. On l'utilise quand une ressource est dans un état dégradé invisible pour Terraform c'est l'équivalent moderne et ciblé de `terraform taint`.
 
-### Q5. Pourquoi éviter le tag `:latest` en production
+### Q5. Pourquoi est-il déconseillé d'utiliser le tag latest en production ?
 
 `:latest` est un pointeur mouvant : l'image qu'il référence change sans préavis quand l'éditeur publie une nouvelle version. Deux déploiements identiques à 24 h d'écart peuvent donc embarquer des images différentes, ce qui casse la reproductibilité, complique le debug (« ça marchait hier »), et expose à des régressions ou des changements de comportement non maîtrisés. En production on épingle une version explicite (`nginx:1.25.3`) pour garantir un déploiement déterministe.
 
