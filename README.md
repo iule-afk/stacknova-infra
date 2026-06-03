@@ -11,11 +11,11 @@ bash scripts/deploy.sh
 ---
 
 ## Architecture
-┌──────────────┐    provisionne    ┌──────────────────────┐    configure    ┌──────────────┐
-│  Terraform   │ ────────────────► │  Conteneur Docker    │ ◄────────────── │   Ansible    │
-│  (provider   │                   │  stacknova-recette   │                 │  (connexion  │
-│  kreuzwerker)│                   │  nginx:1.25.3 :8080  │                 │   docker)    │
-└──────────────┘                   └──────────────────────┘                 └──────────────┘
+┌──────────────┐    provisionne    ┌─────────────────────┐    configure    ┌──────────────┐
+│  Terraform   │ ────────────────► │  Conteneur Docker   │ ◄────────────── │   Ansible    │
+│  (provider   │                   │  stacknova-recette  │                 │  (connexion  │
+│  kreuzwerker)│                   │  nginx:1.25.3 :8080 │                 │   docker)    │
+└──────────────┘                   └─────────────────────┘                 └──────────────┘
 - **Terraform** crée l'image et le conteneur, expose le port 8080, applique les labels `env=recette` et `project=stacknova`.
 - **Ansible** se connecte au conteneur via `community.docker.docker` (mode `raw`, sans Python sur la cible) et personnalise la page d'accueil avec un horodatage dynamique.
 - **`deploy.sh`** enchaîne les deux étapes et s'interrompt automatiquement à la moindre erreur.
