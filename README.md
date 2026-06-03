@@ -11,11 +11,15 @@ bash scripts/deploy.sh
 ---
 
 ## Architecture
+
+```
 ┌──────────────┐    provisionne    ┌─────────────────────┐    configure    ┌──────────────┐
 │  Terraform   │ ────────────────► │  Conteneur Docker   │ ◄────────────── │   Ansible    │
 │  (provider   │                   │  stacknova-recette  │                 │  (connexion  │
 │  kreuzwerker)│                   │  nginx:1.25.3 :8080 │                 │   docker)    │
 └──────────────┘                   └─────────────────────┘                 └──────────────┘
+```
+
 - **Terraform** crée l'image et le conteneur, expose le port 8080, applique les labels `env=recette` et `project=stacknova`.
 - **Ansible** se connecte au conteneur via `community.docker.docker` (mode `raw`, sans Python sur la cible) et personnalise la page d'accueil avec un horodatage dynamique.
 - **`deploy.sh`** enchaîne les deux étapes et s'interrompt automatiquement à la moindre erreur.
@@ -42,6 +46,7 @@ Environnement testé : Debian sous WSL2 avec Docker Desktop (intégration WSL ac
 
 ## Arborescence
 
+```
 stacknova-infra/
 ├── terraform/
 │   ├── providers.tf      # Provider Docker Kreuzwerker (version épinglée)
@@ -54,6 +59,8 @@ stacknova-infra/
 │   └── deploy.sh         # Orchestration terraform + ansible
 ├── screens/              # Captures d'écran de validation
 └── README.md
+```
+
 ---
 
 ## Utilisation
@@ -82,7 +89,7 @@ Le déploiement est **idempotent et reproductible** :
 2. Le script `deploy.sh` orchestre l'intégralité du flux et s'interrompt sur toute erreur (`set -euo pipefail`).
 3. Aucune intervention manuelle n'est requise entre les étapes.
 
-**Test effectué** :
+**Test effectué :**
 
 ```bash
 terraform -chdir=terraform destroy -auto-approve   # destruction complète
@@ -131,6 +138,5 @@ L'idempotence est la propriété qu'une opération produise le même résultat q
 
 ## Auteur
 
-Évaluation IaC — StackNova
+Évaluation IaC — StackNova  
 Dépôt : https://github.com/iule-afk/stacknova-infra
-
