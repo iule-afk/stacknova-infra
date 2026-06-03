@@ -1,0 +1,43 @@
+---
+- name: Configuration du conteneur stacknova-recette
+  hosts: recette
+  gather_facts: false
+
+  vars:
+    deployment_time: "{{ lookup('pipe', 'date +\"%Y-%m-%d %H:%M:%S UTC\"') }}"
+
+  tasks:
+    - name: Générer la page d'accueil personnalisée
+      raw: |
+        cat > /usr/share/nginx/html/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <title>StackNova - Recette</title>
+          <style>
+            body { font-family: sans-serif; text-align: center; padding: 4em; background: #1a1a2e; color: #eee; }
+            h1 { color: #4ecdc4; }
+            .info { background: #16213e; padding: 1.5em; border-radius: 8px; display: inline-block; }
+          </style>
+        </head>
+        <body>
+          <h1>StackNova</h1>
+          <div class="info">
+            <p><strong>Projet :</strong> StackNova</p>
+            <p><strong>Environnement :</strong> recette</p>
+            <p><strong>Déployé le :</strong> {{ deployment_time }}</p>
+          </div>
+        </body>
+        </html>
+        EOF
+
+    - name: Vérifier que Nginx tourne dans le conteneur
+      raw: cat /proc/1/comm
+      register: nginx_check
+      changed_when: false
+      failed_when: "'nginx' not in nginx_check.stdout"
+
+    - name: Afficher le statut Nginx
+      debug:
+        msg: "Nginx est actif (process principal : {{ nginx_check.stdout_lines[-1] }})"
